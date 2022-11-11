@@ -52,6 +52,18 @@ def process_templates(stats, write=True):
 
 def process_memes(stats, write=True):
     memes = pl.concat([extract_meme_data(path) for path in stats['path']])
+
+    # why the fuck doesn't this replace all occurrences?
+    memes = memes.with_columns([
+        pl.col("views").str.replace(r',', ''),
+        pl.col("votes").str.replace(r',', '')
+    ])
+
+    memes = memes.with_columns([
+        pl.col("views").str.replace(r',', '').cast(pl.Int32),
+        pl.col("votes").str.replace(r',', '').cast(pl.Int32)
+    ])
+
     if write: memes.write_ipc(f'{destination}/memes.feather')
     return memes
 
@@ -75,9 +87,8 @@ def main():
     print(process_templates(stats))
     print(process_memes(stats))
 
-    remove_dataset()
+    # remove_dataset()
 
 
 if __name__ == '__main__':
     main()
-

@@ -1,5 +1,5 @@
 import polars as pl
-# import pandas as pd
 
-df = pl.read_csv("dataset/top100.csv")
-print(df)
+print(pl.read_ipc("data/memes.feather"))
+print(pl.read_csv("data/templates.csv"))
+print(pl.read_csv("data/statistics.csv"))
