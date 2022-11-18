@@ -1,33 +1,42 @@
 # Information retrieval project
 This project is made by Thomas Dooms and Basil Rommens
 
+# How to run?
+1. execute the build.py script to fetch and clean the main meme dataset
+2. execute any other script 
+
 
 # Data
 ## memes (the main database)
-┌──────────────────┬─────────────────┬───────┬───────┬───────────┬───────────────┬─────────────────┐
-│ url              ┆ post            ┆ views ┆ votes ┆ title     ┆ author        ┆ boxes           │
-│ ---              ┆ ---             ┆ ---   ┆ ---   ┆ ---       ┆ ---           ┆ ---             │
-│ str              ┆ str             ┆ i32   ┆ i32   ┆ str       ┆ str           ┆ list[str]       │
-└──────────────────┴─────────────────┴───────┴───────┴───────────┴───────────────┴─────────────────┘
+| Name   | Type      | Description                                                 |
+|--------|-----------|-------------------------------------------------------------|
+| url    | str       | url to the real meme image                                  |
+| name   | str       | name, class of the meme                                     |
+| post   | str       | url to the post of the meme                                 |
+| views  | i32       | amount fo views                                             |
+| votes  | i32       | amount of votes                                             |
+| title  | str       | title of the post, defaults to name, do not use to classify |
+| author | str       | author                                                      |
+| boxes  | list[str] | captions of the meme                                        |
 
 ## templates
-┌────────────────────────────┬────────────────────────────┬────────────────────────────┬───────────┐
-│ title                      ┆ url                        ┆ alt_names                  ┆ id        │
-│ ---                        ┆ ---                        ┆ ---                        ┆ ---       │
-│ str                        ┆ str                        ┆ str                        ┆ str       │
-└────────────────────────────┴────────────────────────────┴────────────────────────────┴───────────┘
+| Name      | Type |
+|-----------|------|
+| title     | str  |
+| url       | str  |
+| alt_names | str  |
+| id        | i32  |
 
 ## statistics
-┌───────────────────────────────────────────────────┬──────────────────────────────────────────────┐
-│ path                                              ┆ count                                        │
-│ ---                                               ┆ ---                                          │
-│ str                                               ┆ str                                          │
-└───────────────────────────────────────────────────┴──────────────────────────────────────────────┘
+| Name      | Type |
+|-----------|------|
+| path      | str  |
+| count     | str  |
 
 # TODO
 - [x] Find a database of memes
 - [x] Create s script to clean the data into a usable format
-- [.] Generate mean embeddings per template and plot with t-SNE
+- [x] Generate mean embeddings per template and plot with t-SNE
 - [ ] Look at fine-tuning a model like [distilbert](https://huggingface.co/distilbert-base-uncased-finetuned-sst-2-english)
 - [ ] Look at gathering more data (with Google search or from a subreddit)
 - [ ] Look at using a model like [CLIP](https://github.com/openai/CLIP)

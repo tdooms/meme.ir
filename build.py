@@ -25,6 +25,7 @@ def extract_meme_data(path):
 
     frame = {
         'url': [entry['url'] for entry in data],
+        'name': [path.strip('.json')] * len(data),
         'post': [entry['post'] for entry in data],
         'views': [entry['metadata']['views'] for entry in data],
         'votes': [entry['metadata']['img-votes'] for entry in data],
