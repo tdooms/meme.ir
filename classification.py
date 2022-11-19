@@ -1,13 +1,83 @@
-import torch
-from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
+import numpy as np
+import pandas as pd
+from transformers import AutoTokenizer
+from transformers import DataCollatorWithPadding
+from transformers import AutoModelForSequenceClassification, TrainingArguments, Trainer
+from datasets import Dataset
 
-tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
-model = DistilBertForSequenceClassification.from_pretrained("distilbert-base-uncased")
 
-inputs = tokenizer("Hello, my dog is cute", return_tensors="pt")
-with torch.no_grad():
-    logits = model(**inputs).logits
+name = "distilbert-base-uncased"
+path = "model1"
+tokenizer = AutoTokenizer.from_pretrained(name)
 
-print(logits)
-predicted_class_id = logits.argmax().item()
-print(model.config.id2label[predicted_class_id])
+
+def train_model():
+    collator = DataCollatorWithPadding(tokenizer=tokenizer)
+
+    memes = pd.read_feather("data/memes.feather")
+    memes["text"] = memes["boxes"].apply(lambda x: ". ".join(x))
+    memes = memes[["text", "label"]]
+    memes = memes.sample(10_000).reset_index(drop=True)
+
+    mask = np.random.rand(len(memes)) < 0.8
+    train = memes[mask]
+    test = memes[~mask]
+
+    train = Dataset.from_pandas(train, split="train")
+    test = Dataset.from_pandas(test, split="test")
+
+    def preprocess(examples): return tokenizer(examples["text"], truncation=True)
+
+    train_tokenized = train.map(preprocess, batched=True)
+    test_tokenized = test.map(preprocess, batched=True)
+
+    model = AutoModelForSequenceClassification.from_pretrained(name, num_labels=100)
+
+    training_args = TrainingArguments(
+        output_dir="results",
+        learning_rate=2e-5,
+        per_device_train_batch_size=16,
+        per_device_eval_batch_size=16,
+        num_train_epochs=5,
+        weight_decay=0.01,
+    )
+
+    trainer = Trainer(
+        model=model,
+        args=training_args,
+        train_dataset=train_tokenized,
+        eval_dataset=test_tokenized,
+        tokenizer=tokenizer,
+        data_collator=collator,
+
+    )
+
+    trainer.train()
+    trainer.evaluate()
+
+    trainer.save_model(path)
+
+
+def test_model():
+    model = AutoModelForSequenceClassification.from_pretrained(path)
+
+    text = "One does not simply generate memes with AI"
+    encoding = tokenizer(text, return_tensors="pt")
+
+    encoding = {k: v.to(model.device) for k, v in encoding.items()}
+    outputs = model(**encoding)
+
+    print(np.argmax(outputs.logits.detach().numpy()))  # Should be 1
+
+    text = "Y U NO USE RUST?"
+    encoding = tokenizer(text, return_tensors="pt")
+
+    encoding = {k: v.to(model.device) for k, v in encoding.items()}
+    outputs = model(**encoding)
+
+    print(np.argmax(outputs.logits.detach().numpy()))  # Should be 17
+
+
+if __name__ == '__main__':
+    train_model()
+    test_model()

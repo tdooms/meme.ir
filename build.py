@@ -1,7 +1,7 @@
 import subprocess
 import json
 import os
-import polars as pl
+import pandas as pd
 
 origin = "ImgFlip575K_Dataset/dataset"
 destination = "data"
@@ -20,12 +20,12 @@ def remove_dataset():
     subprocess.check_call(['rm', '-rf', 'ImgFlip575K_Dataset'])
 
 
-def extract_meme_data(path):
+def extract_meme_data(path, label):
     data = json.load(open(f'{origin}/memes/{path}'))
 
     frame = {
         'url': [entry['url'] for entry in data],
-        'name': [path.strip('.json')] * len(data),
+        'label': [label] * len(data),
         'post': [entry['post'] for entry in data],
         'views': [entry['metadata']['views'] for entry in data],
         'votes': [entry['metadata']['img-votes'] for entry in data],
@@ -34,7 +34,7 @@ def extract_meme_data(path):
         'boxes': [entry['boxes'] for entry in data]
     }
 
-    return pl.DataFrame(frame)
+    return pd.DataFrame(frame)
 
 
 def process_templates(stats, write=True):
@@ -46,26 +46,22 @@ def process_templates(stats, write=True):
         "alt_names": [entry['alternative_names'] for entry in data],
         "id": [entry['template_id'] for entry in data],
     }
-    templates = pl.DataFrame(frame)
-    if write: templates.write_csv(f'{destination}/templates.csv')
+    templates = pd.DataFrame(frame)
+    if write: templates.to_csv(f'{destination}/templates.csv', index=False)
     return templates
 
 
 def process_memes(stats, write=True):
-    memes = pl.concat([extract_meme_data(path) for path in stats['path']])
+    memes = pd.concat([extract_meme_data(path, idx) for idx, path in enumerate(stats['path'])])
 
-    # why the fuck doesn't this replace all occurrences?
-    memes = memes.with_columns([
-        pl.col("views").str.replace(r',', ''),
-        pl.col("votes").str.replace(r',', '')
-    ])
+    memes['views'] = memes['views'].str.replace(',', '').astype('int32')
+    memes['votes'] = memes['votes'].fillna('0').astype('int32')
 
-    memes = memes.with_columns([
-        pl.col("views").str.replace(r',', '').cast(pl.Int32),
-        pl.col("votes").str.replace(r',', '').cast(pl.Int32)
-    ])
+    memes.info(memory_usage='deep')
 
-    if write: memes.write_ipc(f'{destination}/memes.feather')
+    memes.reset_index(drop=True, inplace=True)
+    if write: memes.to_feather(f'{destination}/memes.feather')
+
     return memes
 
 
@@ -73,10 +69,10 @@ def process_statistics(write=True):
     stats = json.load(open(f'{origin}/statistics.json'))
     stats = stats["memes"]
 
-    stats = pl.DataFrame({'path': list(stats.keys()), 'count': list(stats.values())})
-    stats = stats.sort('count', reverse=True)
+    stats = pd.DataFrame({'path': list(stats.keys()), 'count': list(stats.values())})
+    stats = stats.sort_values(by='count', ascending=False)
 
-    if write: stats.write_csv(f'{destination}/statistics.csv')
+    if write: stats.to_csv(f'{destination}/statistics.csv', index=False)
     return stats
 
 
