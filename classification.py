@@ -15,9 +15,11 @@ def train_model():
     collator = DataCollatorWithPadding(tokenizer=tokenizer)
 
     memes = pd.read_feather("data/memes.feather")
+    statistics = pd.read_csv("data/statistics.csv")
+
     memes["text"] = memes["boxes"].apply(lambda x: ". ".join(x))
     memes = memes[["text", "label"]]
-    memes = memes.sample(10_000).reset_index(drop=True)
+    memes = memes.sample(1_000).reset_index(drop=True)
 
     mask = np.random.rand(len(memes)) < 0.8
     train = memes[mask]
@@ -40,6 +42,7 @@ def train_model():
         per_device_eval_batch_size=16,
         num_train_epochs=5,
         weight_decay=0.01,
+        label_names=statistics["path"].str.strip(".json").replace('-', ' ').tolist(),
     )
 
     trainer = Trainer(
@@ -49,7 +52,6 @@ def train_model():
         eval_dataset=test_tokenized,
         tokenizer=tokenizer,
         data_collator=collator,
-
     )
 
     trainer.train()
@@ -61,21 +63,16 @@ def train_model():
 def test_model():
     model = AutoModelForSequenceClassification.from_pretrained(path)
 
-    text = "One does not simply generate memes with AI"
+    text = [
+        "One does not simply generate memes with AI",  # label 1
+        "Y U NO USE RUST?"  # label 17
+    ]
+
     encoding = tokenizer(text, return_tensors="pt")
-
     encoding = {k: v.to(model.device) for k, v in encoding.items()}
+
     outputs = model(**encoding)
-
-    print(np.argmax(outputs.logits.detach().numpy()))  # Should be 1
-
-    text = "Y U NO USE RUST?"
-    encoding = tokenizer(text, return_tensors="pt")
-
-    encoding = {k: v.to(model.device) for k, v in encoding.items()}
-    outputs = model(**encoding)
-
-    print(np.argmax(outputs.logits.detach().numpy()))  # Should be 17
+    print(outputs)
 
 
 if __name__ == '__main__':

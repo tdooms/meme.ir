@@ -21,6 +21,7 @@ def remove_dataset():
 
 
 def extract_meme_data(path, label):
+    print(label, path.strip('.json'))
     data = json.load(open(f'{origin}/memes/{path}'))
 
     frame = {
