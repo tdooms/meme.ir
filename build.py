@@ -1,6 +1,9 @@
+import random
 import subprocess
 import json
 import os
+
+import numpy as np
 import pandas as pd
 
 origin = "ImgFlip575K_Dataset/dataset"
@@ -21,7 +24,6 @@ def remove_dataset():
 
 
 def extract_meme_data(path, label):
-    print(label, path.strip('.json'))
     data = json.load(open(f'{origin}/memes/{path}'))
 
     frame = {
@@ -53,12 +55,17 @@ def process_templates(stats, write=True):
 
 
 def process_memes(stats, write=True):
-    memes = pd.concat([extract_meme_data(path, idx) for idx, path in enumerate(stats['path'])])
+    memes = pd.concat([extract_meme_data(path, label) for path, label in stats[['path', 'label']].values])
 
     memes['views'] = memes['views'].str.replace(',', '').astype('int32')
     memes['votes'] = memes['votes'].fillna('0').astype('int32')
 
     memes.info(memory_usage='deep')
+
+    train_size = 500_000
+    mask = [True] * train_size + [False] * (len(memes) - train_size)
+    np.random.shuffle(mask)
+    memes["train"] = mask
 
     memes.reset_index(drop=True, inplace=True)
     if write: memes.to_feather(f'{destination}/memes.feather')
@@ -72,9 +79,20 @@ def process_statistics(write=True):
 
     stats = pd.DataFrame({'path': list(stats.keys()), 'count': list(stats.values())})
     stats = stats.sort_values(by='count', ascending=False)
+    stats["category"] = manual_categories()
+    stats["label"] = list(range(len(stats)))
 
     if write: stats.to_csv(f'{destination}/statistics.csv', index=False)
     return stats
+
+
+def manual_categories():
+    return ['PS', 'SP', 'PS', 'SS', 'SP', 'PS', 'SP', 'PS', 'PS', 'SP', 'SS', 'SS', 'SP', 'PS', 'PS', 'PS', 'SP', 'PS',
+            'SP', 'PS', 'SP', 'PS', 'PS', 'PS', 'PS', 'PS', 'PS', 'SP', 'PS', 'PS', 'PS', 'PS', 'PS', 'PS', 'SS', 'PS',
+            'PS', 'SP', 'SS', 'SP', 'PS', 'SP', 'PS', 'PS', 'SS', 'SP', 'SP', 'SP', 'SS', 'PS', 'PS', 'PS', 'PS', 'PS',
+            'PS', 'PS', 'PS', 'SP', 'PS', 'SP', 'PS', 'PS', 'SP', 'PS', 'SP', 'SS', 'SS', 'SP', 'PS', 'PS', 'SP', 'SP',
+            'PS', 'PS', 'PS', 'PS', 'PS', 'PS', 'SP', 'PS', 'SP', 'SP', 'PS', 'PS', 'PS', 'PS', 'PS', 'PS', 'SP', 'SP',
+            'PS', 'PS', 'SP', 'SP', 'SS', 'SP', 'SP', 'PS', 'PS']
 
 
 def main():
@@ -89,4 +107,7 @@ def main():
 
 
 if __name__ == '__main__':
+    pd.options.display.max_rows = 100
+    pd.options.display.max_columns = None
+    pd.options.display.width = None
     main()
