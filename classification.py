@@ -108,7 +108,7 @@ def explain_model():
     if not os.path.exists("data/inferred.feather"):
         model = AutoModelForSequenceClassification.from_pretrained(path)
         memes = pd.read_feather("data/test.feather")
-        # memes = memes.sample(1_000).reset_index(drop=True)
+        # memes = memes.sample(100).reset_index(drop=True)
 
         text = memes["boxes"].apply(lambda x: ". ".join(x)).tolist()
 
@@ -117,7 +117,7 @@ def explain_model():
         label2id = {v: k for k, v in statistics[["label", "name"]].values}
 
         pipeline = TextClassificationPipeline(model=model, tokenizer=tokenizer)
-        results = pipeline(text)
+        results = pipeline(text, truncation=True)
 
         memes["predicted"] = [label2id[result["label"]] for result in results]
         memes["confidence"] = [result["score"] for result in results]

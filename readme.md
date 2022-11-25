@@ -37,9 +37,9 @@ This project is made by Thomas Dooms and Basil Rommens
 - [x] Find a database of memes
 - [x] Create s script to clean the data into a usable format
 - [x] Generate mean embeddings per template and plot with t-SNE
-- [ ] Look at fine-tuning a model like [distilbert](https://huggingface.co/distilbert-base-uncased-finetuned-sst-2-english)
+- [x] Look at fine-tuning a model like [distilbert](https://huggingface.co/distilbert-base-uncased-finetuned-sst-2-english)
 - [ ] Look at gathering more data (with Google search or from a subreddit)
-- [ ] Look at using a model like [CLIP](https://github.com/openai/CLIP)
+- [x] Look at using a model like [CLIP](https://github.com/openai/CLIP)
 
 # Finalising
 - [ ] Write the report
