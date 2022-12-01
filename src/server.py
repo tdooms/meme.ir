@@ -5,12 +5,12 @@ app = Flask(__name__)
 
 path = "models/model500k"
 tokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased")
-model = AutoModelForSequenceClassification.from_pretrained(path, output_hidden_states=True)
+model = AutoModelForSequenceClassification.from_pretrained(path)
 pipeline = TextClassificationPipeline(model=model, tokenizer=tokenizer)
 
 
 @app.route("/generate", methods=["POST"])
-def hello_world():
-    results = pipeline(request.json["text"])
+def generate():
+    results = pipeline(request.json["text"], truncation=True, top_k=5)
     print(results)
     return "<p>Hello, World!</p>"
