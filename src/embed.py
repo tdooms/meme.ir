@@ -26,29 +26,32 @@ def store():
 
 
 def sample():
+    start = time.time()
     memes = pd.read_feather("data/features.feather")
-    memes.sample(1000).reset_index(drop=True).to_feather("data/sample.feather")
+    print(f"read features in {time.time() - start:.2f} seconds")
+
+    memes.sample(100_000).reset_index(drop=True).to_feather("data/sample.feather")
 
 
 def visualise():
     start = time.time()
     memes = pd.read_feather("data/sample.feather")
-    print(f"read features in {time.time() - start:.2f} seconds")
+    print(f"read sample in {time.time() - start:.2f} seconds")
 
     start = time.time()
     features = np.array(memes['features'].to_list())
-    projected = TSNE(n_components=2).fit_transform(features)
-    print(f"computed PCA in {time.time() - start:.2f} seconds")
+    projected = PCA(n_components=2).fit_transform(features)
+    print(f"computed tsne in {time.time() - start:.2f} seconds")
 
     # visualise the t-sne per meme name in a scatter plot with seaborn
-    # start = time.time()
-    # sns.scatterplot(x=projected[:, 0], y=projected[:, 1], hue=memes['name'])
-    # plt.legend([], [], frameon=False)
-    # plt.show()
-    # print(f"computed plot in {time.time() - start:.2f} seconds")
+    start = time.time()
+    sns.scatterplot(x=projected[:, 0], y=projected[:, 1], hue=memes['name'])
+    plt.legend([], [], frameon=False)
+    plt.show()
+    print(f"computed plot in {time.time() - start:.2f} seconds")
 
 
 if __name__ == '__main__':
     # store()
-    # sample()
+    sample()
     visualise()

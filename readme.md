@@ -3,8 +3,11 @@ This project is made by Thomas Dooms and Basil Rommens
 
 # How to run?
 1. execute the build.py script to fetch and clean the main meme dataset
-2. execute any other script 
+2. execute any other script (for example server.py to start up a backend)
 
+The most useful files are classification and server.
+Classification is a script that trains a model and saves it to a file along with other functions to analyse the model.
+The server is a simple backend with a simple endpoint /generate/<text> that generates a meme based on the text.
 
 # Data
 ## memes (the main database)
@@ -32,18 +35,3 @@ This project is made by Thomas Dooms and Basil Rommens
 |-----------|------|
 | path      | str  |
 | count     | str  |
-
-# TODO
-- [x] Find a database of memes
-- [x] Create s script to clean the data into a usable format
-- [x] Generate mean embeddings per template and plot with t-SNE
-- [ ] Look at fine-tuning a model like [distilbert](https://huggingface.co/distilbert-base-uncased-finetuned-sst-2-english)
-- [ ] Look at gathering more data (with Google search or from a subreddit)
-- [ ] Look at using a model like [CLIP](https://github.com/openai/CLIP)
-
-# Finalising
-- [ ] Write the report
-- [ ] Make the presentation
-- [ ] Make a CLI
-- [ ] Make a web UI
-- [ ] Generate real memes instead of classifying into templates
