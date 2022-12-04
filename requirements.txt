@@ -1,0 +1,8 @@
+torch
+polars
+transformers
+matplotlib
+seaborn
+sentence_transformers
+tesseract
+opencv-contrib-python
