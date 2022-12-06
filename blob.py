@@ -70,7 +70,7 @@ def remove_long_blobs(img, blobs):
             blobs_to_remove.extend(blob)
         elif height / ih > 0.15 or width / iw > 0.15 and height / width > 2:
             blobs_to_remove.extend(blob)
-        elif height / ih < 0.01:
+        elif height / iw < 0.01:
             blobs_to_remove.extend(blob)
 
     for bloby, blobx in blobs_to_remove:
