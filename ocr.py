@@ -28,47 +28,7 @@ def show_img(img):
 def clean_images(imgs):
     clean_imgs = dict()
     for f_name, img in imgs.items():
-        img = bilateral_img(img)
-        img = to_fuchsia(img)
-        img = remove_big_blobs(img, [0, 0, 0])
-        img = remove_big_blobs(img, [255, 255, 255])
-        img = from_to_color(img, [0, 0, 0], [255, 255, 255])
-        img = from_to_color(img, [255, 0, 255], [0, 0, 0])
-        # img = greyscale_img(img, f_name)
-        # img = thin_img(img)
-        show_img(img)
-
-        _, img_dark = cv2.threshold(img, 250, 255, 1)
-        _, img_light = cv2.threshold(img, 250, 255, cv2.THRESH_BINARY)
-        # show_img(img_light)
-        # show_img(img_dark)
-
-        # rotate to find more text
-        # img_clock = rotate_img(img, 15)
-        # img_counter = rotate_img(img, -15)
-        img_clock_d = rotate_img(img_dark, 15)
-        img_counter_d = rotate_img(img_dark, -15)
-        img_clock_l = rotate_img(img_light, 15)
-        img_counter_l = rotate_img(img_light, -15)
-
-        # img_thin_d = cv2.ximgproc.thinning(img_dark)
-        # img_thin_l = cv2.ximgproc.thinning(img_light)
-        # show_img(img_thin_d)
-        # img_thin_d = cv2.erode(img_dark, thinning_kernel, iterations=3)
-        # img_thin_l = cv2.erode(img_light, thinning_kernel, iterations=3)
-
-        clean_imgs[f_name] = dict()
-        clean_imgs[f_name]['original'] = img
-        # clean_imgs[f_name]['clock'] = img_clock
-        # clean_imgs[f_name]['counter'] = img_counter
-        clean_imgs[f_name]['dark'] = img_dark
-        clean_imgs[f_name]['light'] = img_light
-        clean_imgs[f_name]['clock_d'] = img_clock_d
-        clean_imgs[f_name]['counter_d'] = img_counter_d
-        clean_imgs[f_name]['clock_l'] = img_clock_l
-        clean_imgs[f_name]['counter_l'] = img_counter_l
-        # clean_imgs[f_name]['thin_d'] = img_thin_d
-        # clean_imgs[f_name]['thin_l'] = img_thin_l
+        clean_imgs[f_name] = clean_img(img)
     return clean_imgs
 
 
@@ -81,9 +41,6 @@ def ocr_images(imgs):
                                                        config=custom_config)
         img_texts[f_name] = text
     return img_texts
-
-
-
 
 
 def clean_img(img):
@@ -120,11 +77,91 @@ def clean_img(img):
     return img
 
 
+def text_box(img):
+    # accessed on 20
+    # Convert the image to gray scale
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # Performing OTSU threshold
+    ret, thresh1 = cv2.threshold(gray, 0, 255, cv2.THRESH_OTSU)
+    # Specify structure shape and kernel size.
+    # Kernel size increases or decreases the area
+    # of the rectangle to be detected.
+    # A smaller value like (10, 10) will detect
+    # each word instead of a sentence.
+    dim = img.shape[0] // 40
+    rect_kernel = cv2.getStructuringElement(cv2.MORPH_RECT,
+                                            (int(dim * 2.2), int(dim * 1.5)))
+
+    # Applying dilation on the threshold image
+    dilation = cv2.dilate(thresh1, rect_kernel, iterations=1)
+    show_img(dilation)
+
+    # Finding contours
+    contours, hierarchy = cv2.findContours(dilation, cv2.RETR_EXTERNAL,
+                                           cv2.CHAIN_APPROX_NONE)
+
+    # Creating a copy of image
+    im2 = img.copy()
+
+    sub_imgs = list()
+    sub_img_xy = list()
+    # Looping through the identified contours
+    # Then rectangular part is cropped and passed on
+    # to pytesseract for extracting text from it
+    # Extracted text is then written into the text file
+    for cnt in contours:
+        x, y, w, h = cv2.boundingRect(cnt)
+        sub_img_xy.append((y, x))
+
+        # Cropping the text block for giving input to OCR
+        cropped = im2[y:y + h, x:x + w]
+        sub_imgs.append(cropped)
+
+    # we need to group items by approx same height so that they then can be
+    # sorted from left to right
+    groups = [[]]
+    cur_idx = 0
+    prev_xy = None
+    for one in sub_img_xy:
+        # if there was no previous sub image then continue after adding to group
+        if prev_xy is None:
+            pass
+        # if current item is approx on same height as other, then put in same
+        # group
+        elif one[0] - 30 < prev_xy[0] < one[1] + 30:
+            pass
+        else:  # create new group
+            groups.append([])
+            cur_idx += 1
+
+        groups[cur_idx].append(one)
+        prev_xy = one
+
+    cur_nr_group_members = 0
+    reindex = list()
+    for group_idx, group in enumerate(groups):
+        groupx = np.array(list(map(lambda v: v[1], group)))
+        groupx_idx = np.argsort(groupx)
+        groupx_idx += cur_nr_group_members
+        cur_nr_group_members += len(group)
+        reindex.extend(list(reversed(list(groupx_idx))))
+    reindex = list(reversed(reindex))
+    sub_imgs = np.array(sub_imgs)
+    sub_imgs = sub_imgs[reindex]
+
+    return sub_imgs
+
+
 if __name__ == '__main__':
     imgs = load_images('examples/*.jpg')
     print(imgs.keys())
     f_name, img = list(imgs.items())[1]
-    clean_img(img)
+    img = clean_img(img)
+    sub_imgs = text_box(img)
+    for sub_img in sub_imgs:
+        imgs = {f_name: sub_img}
+        print(ocr_images(imgs))
+
     # clean_imgs = clean_images(imgs)
     # for f_name, img_dict in clean_imgs.items():
     #     img_texts = ocr_images(img_dict)

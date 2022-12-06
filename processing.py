@@ -67,8 +67,6 @@ def to_fuchsia(img):
             elif avg_gray >= 128 and get_pxl_distance(pxl, gray_pxl) < 12:
                 img[row_idx, col_idx] = [255, 255, 255]
             else:
-                if row_idx == 68 and col_idx == 34:
-                    print(pxl)
                 img[row_idx, col_idx] = [255, 0, 255]
     return img
 
