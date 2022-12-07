@@ -1,4 +1,6 @@
-from flask import Flask, request
+import glob
+
+from flask import Flask, request, jsonify
 from transformers import AutoModelForSequenceClassification, TextClassificationPipeline, AutoTokenizer
 
 app = Flask(__name__)
@@ -11,6 +13,19 @@ pipeline = TextClassificationPipeline(model=model, tokenizer=tokenizer)
 
 @app.route("/generate", methods=["POST"])
 def generate():
-    results = pipeline(request.json["text"], truncation=True, top_k=5)
-    print(results)
-    return "<p>Hello, World!</p>"
+    data = str(request.data)
+    results = pipeline(data, truncation=True, top_k=5)
+
+    response = jsonify(results)
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
+
+
+@app.route("/templates", methods=["GET"])
+def templates():
+    results = glob.glob("frontend/templates/*")
+    results = [template[19:] for template in results]  # frontend/templates\\
+
+    response = jsonify(results)
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response

@@ -6,12 +6,15 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cobul = { git = "https://github.com/tdooms/cobul.git", features=["simple", "fa"] }
+cobul = { git = "https://github.com/tdooms/cobul.git", features=["simple", "fa", "extensions"] }
 yew = { version = "0.20", features = ["csr"] }
-yew-router = "0.17"
 
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 
+derive_more = "0.99"
 wasm-logger = "0.2"
 log = "0.4"
+
+serde = { version = "1.0", features = ["derive"] }
+reqwest = { version = "0.11", features = ["json"] }
