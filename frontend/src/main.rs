@@ -31,6 +31,8 @@ fn home() -> Html {
         Callback::from(move |_| state.set(value.clone()))
     };
 
+    let fallback = html! { <Progress color={Color::Success}/> };
+
     html! {
         <>
         <Hero color={Color::Success} size={HeroSize::Small}>
@@ -41,13 +43,15 @@ fn home() -> Html {
         <Block/>
 
         <Field addons=true>
-            <Control expanded=true> <Input {model} /> </Control>
-            <Control> <simple::Button text="generate" icon={fa::Solid::Gears} color={Color::Success} {click} /> </Control>
+            <Control expanded=true> <Input {model} size={Size::Large} /> </Control>
+            <Control> <simple::Button text="generate" icon={fa::Solid::Gears} color={Color::Success} size={Size::Large} {click} /> </Control>
         </Field>
 
         <Examples {input} />
 
+        <Suspense {fallback}>
         <Templates caption={(*state).clone()} />
+        </Suspense>
 
         <Box>
             <Block> <Icon icon={fa::Brands::Github}/> <a href={"https://github.com/tdooms/meme.ir"}> {"repository"} </a> </Block>
@@ -64,7 +68,7 @@ fn labeling() -> HtmlResult {
 
     Ok(html! {
         <Columns multiline=true>
-        {for templates.into_iter().map(|format| html! { <Template {format} /> })}
+        { for templates.into_iter().map(|x| html! { <Template path={x.path} label={x.label} /> }) }
         </Columns>
     })
 }
@@ -78,15 +82,7 @@ pub fn app() -> Html {
         Page::Labeling => html! { <Labeling /> },
     };
 
-    let fallback = html! { <Loader /> };
-
-    html! {
-        <main>
-            <Section>
-                <Suspense {fallback}> {inner} </Suspense>
-            </Section>
-        </main>
-    }
+    html! { <main> <Section> {inner} </Section> </main> }
 }
 
 fn main() {

@@ -1,12 +1,13 @@
 use std::rc::Rc;
 
 #[derive(serde::Deserialize, Clone, Debug, PartialEq)]
-pub struct Score {
+pub struct Classification {
     pub label: String,
-    pub score: f64,
+    pub path: String,
+    pub score: Option<f64>,
 }
 
-pub async fn generate(text: Rc<Option<String>>) -> Option<Result<Vec<Score>, String>> {
+pub async fn generate(text: Rc<Option<String>>) -> Option<Result<Vec<Classification>, String>> {
     let text = match text.as_ref() {
         Some(text) => text,
         None => return None,
@@ -26,11 +27,11 @@ pub async fn generate(text: Rc<Option<String>>) -> Option<Result<Vec<Score>, Str
     Some(Ok(response))
 }
 
-pub async fn templates() -> Result<Vec<String>, String> {
-    let response = reqwest::get(format!("http://localhost:5000/templates"))
+pub async fn templates() -> Result<Vec<Classification>, String> {
+    let response = reqwest::get("http://localhost:5000/templates")
         .await
         .unwrap();
-    let templates: Vec<String> = response.json().await.unwrap();
+    let templates = response.json().await.unwrap();
 
     Ok(templates)
 }
