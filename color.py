@@ -2,6 +2,15 @@ import scipy.spatial as scs
 from PIL import ImageStat, Image
 
 
+def get_pxls(img, color):
+    pxls = list()
+    for i, row in enumerate(img):
+        for j, pxl in enumerate(row):
+            if is_same_pxl(pxl, color):
+                pxls.append((i, j))
+    return pxls
+
+
 def is_grayscale(path="image.jpg"):
     im = Image.open(path).convert("RGB")
     stat = ImageStat.Stat(im)

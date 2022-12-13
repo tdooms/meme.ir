@@ -5,10 +5,13 @@ import cv2
 import numpy as np
 import pytesseract
 from PIL import Image
+from sklearn.linear_model import LinearRegression
 
 from blob import remove_big_blobs, get_blobs, remove_long_blobs, \
     remove_blob_in_blob
+from color import get_pxls
 from processing import bilateral_img, from_to_color, to_fuchsia, rotate_img
+from text import clean_text
 
 
 def load_images(location):
@@ -33,8 +36,7 @@ def clean_images(imgs):
 
 
 def ocr_images(imgs):
-    custom_config = r"--oem 3 --psm 12 -c tessedit_char_whitelist= 'ABCDEFGHIJKLMNOPQRSTUVWXYZ :'"
-    pytesseract.pytesseract.tesseract_cmd = r'/usr/bin/tesseract'
+    custom_config = r"--oem 3 --psm 12 -c tessedit_char_whitelist='ABCDEFGHIJKLMNOPQRSTUVWXYZ :' --tessdata-dir /usr/share/tesseract-ocr/5/tessdata/"
     img_texts = dict()
     for f_name, img in imgs.items():
         text = pytesseract.pytesseract.image_to_string(img, lang='eng',
@@ -94,7 +96,6 @@ def text_box(img):
 
     # Applying dilation on the threshold image
     dilation = cv2.dilate(thresh1, rect_kernel, iterations=1)
-    show_img(dilation)
 
     # Finding contours
     contours, hierarchy = cv2.findContours(dilation, cv2.RETR_EXTERNAL,
@@ -152,18 +153,73 @@ def text_box(img):
     return sub_imgs
 
 
-if __name__ == '__main__':
-    imgs = load_images('examples/*.jpg')
-    print(imgs.keys())
-    f_name, img = list(imgs.items())[1]
-    img = clean_img(img)
-    sub_imgs = text_box(img)
-    for sub_img in sub_imgs:
-        imgs = {f_name: sub_img}
-        print(ocr_images(imgs))
+def get_deskew_angle(pxls):
+    y = [xy[0] for xy in pxls]
+    x = [xy[1] for xy in pxls]
 
-    # clean_imgs = clean_images(imgs)
-    # for f_name, img_dict in clean_imgs.items():
-    #     img_texts = ocr_images(img_dict)
-    #     print(img_texts)
-    #     break
+    model = LinearRegression()
+    model.fit(np.array(x).reshape(-1, 1), np.array(y).reshape(-1, 1))
+
+    coef = model.coef_[0][0]
+
+    hyp = np.sqrt(coef ** 2 + 1)
+
+    angle = np.arcsin(coef / hyp)
+    angle = np.degrees(angle)
+
+    return angle
+
+
+def show_top_100_ocr():
+    # one image doesn't work
+    imgs = load_images('top100/*.jpg')
+    for f_name, img in imgs.items():
+        img = clean_img(img)
+        sub_imgs = text_box(img)
+        sub_imgs_ocr = dict()
+        for sub_img_idx, sub_img in enumerate(sub_imgs):
+            white_pxls = get_pxls(sub_img, [255, 255, 255])
+            deskew_angle = get_deskew_angle(white_pxls)
+            sub_img = rotate_img(sub_img, deskew_angle)
+            sub_imgs_ocr[sub_img_idx] = sub_img
+        ocr_results = ocr_images(sub_imgs_ocr)
+        # clean OCR results
+
+
+def no_caps_ocr():
+    """
+    test both small and large letter OCR recognition of tesseract
+    :return:
+    """
+    imgs = load_images('examples/*.jpg')
+    new_imgs = dict()
+    new_imgs['big_letter.jpg'] = imgs['examples/big_letter.jpg']
+    new_imgs['small_letter.jpg'] = imgs['examples/small_letter.jpg']
+    # tesseract should return same result for both images
+    ocr_results = ocr_images(new_imgs)
+    print('real value: ')
+    print("THIS IS SOME TEXT TO RECOGNIZE\nWHEREVER THIS GOES IT'S FINE")
+    print('----------------------------------------------------------')
+    print('big letter result')
+    print(ocr_results['big_letter.jpg'])
+    print('----------------------------------------------------------')
+    print("This is some text to recognize\nwherever this goes it's fine")
+    print('----------------------------------------------------------')
+    print('small letter result')
+    print('----------------------------------------------------------')
+    print(ocr_results['small_letter.jpg'])
+
+
+if __name__ == '__main__':
+    no_caps_ocr()
+    # imgs = load_images('examples/*.jpg')
+    # print(imgs.keys())
+    # img = list(imgs.values())[2]
+    # img = bilateral_img(img)
+    # new_imgs = {'temp': img}
+    # texts = ocr_images(new_imgs)
+    # print(texts)
+    # for key, value in texts.items():
+    #     print(key, value)
+    #     print(clean_text(value))
+    # show_top_100_ocr()
