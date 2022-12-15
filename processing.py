@@ -52,7 +52,7 @@ def thin_img(img):
     return img
 
 
-def to_fuchsia(img):
+def remove_color(img):
     for row_idx, row in enumerate(img):
         for col_idx, pxl in enumerate(row):
             # if pixel isn't black or white enough then make it fuchsia
@@ -62,9 +62,9 @@ def to_fuchsia(img):
                 img[row_idx, col_idx] = [255, 255, 255]
             elif is_black(pxl):
                 img[row_idx, col_idx] = [0, 0, 0]
-            elif avg_gray < 128 and get_pxl_distance(pxl, gray_pxl) < 12:
+            elif avg_gray < 90 and get_pxl_distance(pxl, gray_pxl) < 10:
                 img[row_idx, col_idx] = [0, 0, 0]
-            elif avg_gray >= 128 and get_pxl_distance(pxl, gray_pxl) < 12:
+            elif avg_gray >= 200 and get_pxl_distance(pxl, gray_pxl) < 10:
                 img[row_idx, col_idx] = [255, 255, 255]
             else:
                 img[row_idx, col_idx] = [255, 0, 255]

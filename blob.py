@@ -1,7 +1,6 @@
 import copy
 
 import numpy as np
-from tqdm import tqdm
 
 from color import is_same_pxl
 
@@ -16,7 +15,7 @@ def remove_big_blobs(img, blobs):
             continue
         blobs_to_remove.append(blob)
     for blob in blobs_too_big:
-        if len(blob) < 1700:
+        if len(blob) < 2050:
             continue
         blobs_to_remove.append(blob)
     # remove blobs if bl
@@ -32,7 +31,7 @@ def get_blobs(img, blob_color):
     checked_pxls = np.ndarray(shape=img.shape[:2], dtype=bool)
     checked_pxls.fill(False)
     h, w = img.shape[:2]
-    for row_idx, row in tqdm(enumerate(img)):
+    for row_idx, row in enumerate(img):
         for col_idx, pxl in enumerate(row):
             if checked_pxls[row_idx][col_idx]:
                 continue
@@ -55,13 +54,8 @@ def remove_long_blobs(img, blobs):
     blobs_to_remove = list()
     ih, iw = img.shape[:2]
     for blob in blobs:
-        minx_blob = min(blob, key=lambda x: x[1])[1]
-        maxx_blob = max(blob, key=lambda x: x[1])[1]
-        width = maxx_blob - minx_blob
-
-        miny_blob = min(blob, key=lambda x: x[0])[0]
-        maxy_blob = max(blob, key=lambda x: x[0])[0]
-        height = maxy_blob - miny_blob
+        width = get_blob_width(blob)
+        height = get_blob_height(blob)
 
         if height < 5:
             blobs_to_remove.extend(blob)
@@ -172,6 +166,41 @@ def is_blob_in_blob(blob1, blob2):
 
     # blob within blob
     return True
+
+
+def get_blob_width(blob):
+    minx_blob = min(blob, key=lambda x: x[1])[1]
+    maxx_blob = max(blob, key=lambda x: x[1])[1]
+    return maxx_blob - minx_blob
+
+
+def get_blob_height(blob):
+    miny_blob = min(blob, key=lambda x: x[0])[0]
+    maxy_blob = max(blob, key=lambda x: x[0])[0]
+    return maxy_blob - miny_blob
+
+
+def remove_empty_blobs(img, blobs):
+    blobs_to_remove = list()
+
+    # add small blobs
+    for blob in blobs:
+        blob_width = get_blob_width(blob)
+        blob_height = get_blob_height(blob)
+        if blob_width < 30 or blob_height < 15:
+            continue
+
+        blob_size = len(blob)
+        fill_percentage = blob_size / (blob_width * blob_height)
+        if fill_percentage < 0.25:
+            blobs_to_remove.append(blob)
+
+    # remove blobs
+    for blob_to_remove in blobs_to_remove:
+        for blob_row, blob_col in blob_to_remove:
+            img[blob_row][blob_col] = [255, 0, 255]
+
+    return img
 
 
 def remove_blob_in_blob(img, blobs):
