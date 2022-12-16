@@ -1,0 +1,2 @@
+0,When play rock paper scissors
+1,with the mirror and the mirror wins

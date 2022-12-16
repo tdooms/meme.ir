@@ -8,6 +8,8 @@ This project is made by Thomas Dooms and Basil Rommens
 The most useful files are classification and server.
 Classification is a script that trains a model and saves it to a file along with other functions to analyse the model.
 The server is a simple backend with a simple endpoint /generate/<text> that generates a meme based on the text.
+OCR can be run from the `ocr.py` file (some values need to be changed). 
+The other files in the `ocr` directory are used by the `ocr.py` file.
 
 # Data
 ## memes (the main database)

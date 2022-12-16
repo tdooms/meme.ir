@@ -1,0 +1,2 @@
+0,your promoted to customer
+1,your fired

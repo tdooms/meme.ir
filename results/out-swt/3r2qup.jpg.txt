@@ -1,0 +1,5 @@
+0,ad %A
+1,Having a Facebook account
+2,eo
+3,Having an imgflip account
+4,eee

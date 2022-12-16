@@ -6,3 +6,13 @@ seaborn
 sentence_transformers
 tesseract
 opencv-contrib-python
+pillow
+scikit-learn
+scipy
+tqdm
+distance
+numpy
+pandas
+pytesseract
+swtloc
+pyenchant
