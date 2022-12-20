@@ -13,4 +13,4 @@ if not os.path.exists('../../top100'):
 
 for meme_url in meme_urls:
     meme_name = meme_url.split('/')[-1]
-    os.system(f'wget {meme_url} -O top100/{meme_name}')
+    os.system(f'wget {meme_url} -O ../../top100/{meme_name}')

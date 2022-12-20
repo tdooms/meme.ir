@@ -9,7 +9,7 @@ from swtloc.configs import (IMAGE_ORIGINAL_MASKED_WORD_LOCALIZATIONS,
                             IMAGE_CONNECTED_COMPONENTS_1C,
                             IMAGE_CONNECTED_COMPONENTS_3C)
 
-from src.ocr.blob import get_blobs, remove_empty_blobs, remove_big_blobs, \
+from blob import get_blobs, remove_empty_blobs, remove_big_blobs, \
     remove_long_blobs, remove_blob_in_blob
 
 

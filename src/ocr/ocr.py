@@ -14,9 +14,9 @@ from tqdm import tqdm
 from color import get_pxls
 from processing import rotate_img, \
     swt_transform
-from src.ocr.evaluation import rate_texts
-from src.ocr.processing import clean_img
-from src.ocr.textbox import text_box, get_deskew_angle
+from evaluation import rate_texts
+from processing import clean_img
+from textbox import text_box, get_deskew_angle
 from text import clean_text
 
 
@@ -152,7 +152,7 @@ def write_texts(texts, file):
 
 
 if __name__ == '__main__':
-    method = 'clean'
-    generate_top_100_ocr(method, '../../out-processing/')
-    fix_texts('../../out-processing/')
-    rate_texts('../../out-processing/')
+    # method = 'clean'
+    # generate_top_100_ocr(method, '../../out-processing/')
+    # fix_texts('../../out-processing/')
+    # rate_texts('../../out-processing/')
