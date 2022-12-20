@@ -10,6 +10,8 @@ Classification is a script that trains a model and saves it to a file along with
 The server is a simple backend with a simple endpoint /generate/<text> that generates a meme based on the text.
 OCR can be run from the `ocr.py` file (some values need to be changed). 
 The other files in the `ocr` directory are used by the `ocr.py` file.
+To generate the top 100 memes run the `top100.py` file, if some image fails 
+remove it from that set.
 
 # Data
 ## memes (the main database)
